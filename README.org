@@ -1,0 +1,6 @@
+#+TITLE:  Spyro SRT Autosplitter for Linux
+#+AUTHOR: Patrick M. Niedzielski
+#+EMAIL:  patrick@pniedzielski.net
+
+This repository contains a loadless autosplitter for speedrunning the
+Spyro Reignited Trilogy on Linux.

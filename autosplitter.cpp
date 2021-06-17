@@ -1,10 +1,12 @@
 #include <array>        // std::array<T,N>
 #include <codecvt>      // std::codecvt_utf8_utf16
+#include <chrono>       // namespace std::chrono_literals;
 #include <cstddef>      // std::ptrdiff_t, std::byte
 #include <iostream>     // std::cout, std::cerr
 #include <locale>       // std::wstring_convert
 #include <string>       // std::string
 #include <string_view>  // std::u16string_view
+#include <thread>       // std::this_thread
 #include <vector>       // std::vector<T>, begin, end
 
 #include <errno.h>      // errno
@@ -93,20 +95,29 @@ struct state {
 };
 
 int main(int argc, char** argv) {
+  using namespace std::chrono_literals;
+
   std::cout << "Spyro Reignited Trilogy Autosplitter for Linux\n";
 
   auto current = state{};
-  current.update();
+  auto old     = state{};
 
-  auto map_name_utf16 = std::u16string_view{ current.map().data(), current.map().size() };
-  auto map_name = std::wstring_convert<
-    std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(map_name_utf16.data());
+  while (true) {
+    old = current;
+    current.update();
 
-  std::cout << "is_not_loading: " << static_cast<int>(current.is_not_loading()) << '\n';
-  std::cout << "in_menu:        " << static_cast<int>(current.in_menu())        << '\n';
-  std::cout << "in_game:        " << static_cast<int>(current.in_game())        << '\n';
-  std::cout << "health_ripto3:  " << static_cast<int>(current.health_ripto3())  << '\n';
-  std::cout << "map:            " << map_name                                   << '\n';
+    auto map_name_utf16 = std::u16string_view{ current.map().data(), current.map().size() };
+    auto map_name = std::wstring_convert<
+      std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(map_name_utf16.data());
+
+    std::cout << "is_not_loading: " << static_cast<int>(current.is_not_loading()) << '\n';
+    std::cout << "in_menu:        " << static_cast<int>(current.in_menu())        << '\n';
+    std::cout << "in_game:        " << static_cast<int>(current.in_game())        << '\n';
+    std::cout << "health_ripto3:  " << static_cast<int>(current.health_ripto3())  << '\n';
+    std::cout << "map:            " << map_name                                   << '\n';
+
+    std::this_thread::sleep_for(33ms);
+  }
 
   return 0;
 }

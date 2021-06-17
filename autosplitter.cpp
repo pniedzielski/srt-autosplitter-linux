@@ -1,17 +1,18 @@
-#include <array>        // std::array<T,N>
-#include <codecvt>      // std::codecvt_utf8_utf16
-#include <chrono>       // namespace std::chrono_literals;
-#include <cstddef>      // std::ptrdiff_t, std::byte
-#include <iostream>     // std::cout, std::cerr
-#include <locale>       // std::wstring_convert
-#include <string>       // std::string
-#include <string_view>  // std::u16string_view
-#include <thread>       // std::this_thread
-#include <vector>       // std::vector<T>, begin, end
+#include <array>          // std::array<T,N>
+#include <codecvt>        // std::codecvt_utf8_utf16
+#include <chrono>         // namespace std::chrono_literals;
+#include <cstddef>        // std::ptrdiff_t, std::byte
+#include <iostream>       // std::cout, std::cerr
+#include <locale>         // std::wstring_convert
+#include <string>         // std::string
+#include <string_view>    // std::u16string_view
+#include <thread>         // std::this_thread
+#include <unordered_set>  // std::unordered_set<K>
+#include <vector>         // std::vector<T>, begin, end
 
-#include <errno.h>      // errno
-#include <string.h>     // strerror
-#include <sys/uio.h>    // process_vm_readv, struct iovec
+#include <errno.h>        // errno
+#include <string.h>       // strerror
+#include <sys/uio.h>      // process_vm_readv, struct iovec
 
 template <typename T>  // T is a POD
 struct pointer_path {
@@ -94,13 +95,25 @@ struct state {
   }
 };
 
+auto current = state{};
+auto old     = state{};
+
+auto already_triggered_splits  = std::unordered_set<std::string_view>{};
+auto last_level_exit_timestamp = 0;
+
+bool start() {
+  if (current.in_game() == std::byte{1} && old.in_game() == std::byte{0}) {
+    already_triggered_splits.clear();
+    last_level_exit_timestamp = 0;
+    return true;
+  }
+  return false;
+}
+
 int main(int argc, char** argv) {
   using namespace std::chrono_literals;
 
   std::cout << "Spyro Reignited Trilogy Autosplitter for Linux\n";
-
-  auto current = state{};
-  auto old     = state{};
 
   while (true) {
     old = current;
@@ -115,6 +128,8 @@ int main(int argc, char** argv) {
     std::cout << "in_game:        " << static_cast<int>(current.in_game())        << '\n';
     std::cout << "health_ripto3:  " << static_cast<int>(current.health_ripto3())  << '\n';
     std::cout << "map:            " << map_name                                   << '\n';
+
+    if (start())  std::cout << "start\n";
 
     std::this_thread::sleep_for(33ms);
   }

@@ -256,6 +256,28 @@ bool split() {
   return false;
 }
 
+bool is_loading() {
+  // Game must be loading something to pause the timer
+  if (current.is_not_loading() != std::byte{0})
+    return false;
+
+  // Timer must never be paused on title screen
+  if (current.in_game() == std::byte{0})
+    return false;
+
+  // Timer must not be paused when inside menu to prevent abusing
+  // this by buffering a loading and pausing the game at the exact
+  // same frame.  We also check that the run didn't just start,
+  // because the "in_menu" state is active during the fade to black
+  // after game is selected (which would cause 0.9s to elapse on run
+  // start whereas something is indeed loading).
+  if (current.in_menu() > std::byte{0}/* &&
+      timer.CurrentTime.RealTime.Value.TotalSeconds >= 3*/)
+    return false;
+
+  return true;
+}
+
 int main(int argc, char** argv) {
   using namespace std::chrono_literals;
 
@@ -288,6 +310,7 @@ int main(int argc, char** argv) {
     if (start())  std::cout << "start\n";
     if (reset())  std::cout << "reset\n";
     if (split())  std::cout << "split\n";
+    if (is_loading())  std::cout << "is_loading()";
 
     std::this_thread::sleep_for(33ms);
   }

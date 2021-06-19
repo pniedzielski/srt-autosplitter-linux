@@ -1,6 +1,6 @@
 #include <array>          // std::array<T,N>
 #include <codecvt>        // std::codecvt_utf8_utf16
-#include <chrono>         // namespace std::chrono_literals;
+#include <chrono>         // std::chrono::steady_clock, namespace std::chrono_literals;
 #include <cstddef>        // std::byte
 #include <iostream>       // std::cout, std::cerr
 #include <locale>         // std::wstring_convert
@@ -184,11 +184,13 @@ auto settings = std::unordered_map<std::string, bool>{
 
 // TODO find way to implement this nicely
 auto game_time = 0l;
+auto rta_start = std::chrono::steady_clock::now();
 
 bool start() {
   if (current.in_game() == std::byte{1} && old.in_game() == std::byte{0}) {
     already_triggered_splits.clear();
     last_level_exit_timestamp = 0;
+    rta_start = std::chrono::steady_clock::now();
     return true;
   }
   return false;
@@ -265,14 +267,19 @@ bool is_loading() {
   if (current.in_game() == std::byte{0})
     return false;
 
+  // It would be nice if we could access the LiveSplit One timers,
+  // but the simple websocket API doesn't let us see this.  So we
+  // have to sorta implement it ourselves.
+  auto rta_current = std::chrono::steady_clock::now();
+  auto rta         = rta_current - rta_start;
+
   // Timer must not be paused when inside menu to prevent abusing
   // this by buffering a loading and pausing the game at the exact
   // same frame.  We also check that the run didn't just start,
   // because the "in_menu" state is active during the fade to black
   // after game is selected (which would cause 0.9s to elapse on run
   // start whereas something is indeed loading).
-  if (current.in_menu() > std::byte{0}/* &&
-      timer.CurrentTime.RealTime.Value.TotalSeconds >= 3*/)
+  if (current.in_menu() > std::byte{0} && rta >= 3s)
     return false;
 
   return true;

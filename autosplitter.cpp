@@ -182,6 +182,9 @@ auto settings = std::unordered_map<std::string, bool>{
 //    { "s3_kill_sorceress"s, true },  // Sorceress (on last blow), s3
 };
 
+// TODO find way to implement this nicely
+auto game_time = 0l;
+
 bool start() {
   if (current.in_game() == std::byte{1} && old.in_game() == std::byte{0}) {
     already_triggered_splits.clear();
@@ -193,6 +196,64 @@ bool start() {
 
 bool reset() {
   return settings["reset"s] && current.in_game() == std::byte{0};
+}
+
+bool split() {
+  auto old_map     = std::u16string_view{ old.map().data()     };
+  auto current_map = std::u16string_view{ current.map().data() };
+
+  // For each map...
+  for (auto&& entry : maps) {
+    auto split_code = entry.first;
+    auto map_id     = entry.second.first;
+
+    // An autosplit can only happen if we were in the currently
+    // processed map, and if we aren't in it anymore.  If that's not
+    // the case, no need to continue.
+    if (old_map            != map_id ||
+        current_map        == map_id ||
+        current_map.size() == 0)
+      continue;
+
+    auto is_fast_exit = (game_time - last_level_exit_timestamp < 15);
+    last_level_exit_timestamp = game_time;
+
+    if (settings["ignore_fast_exits"] && is_fast_exit)
+      break;
+
+    // This autosplit needs to be verified if it's always enabled, or
+    // if it's enabled for first exit check and it has not yet been
+    // triggered.
+    if (settings[std::string{ split_code } + "_everytime"s] ||
+        (settings[std::string{ split_code } + "_first"s] &&
+         already_triggered_splits.find(split_code) == end(already_triggered_splits))) {
+      auto should_autosplit = true;
+
+      // If a specific map transition is required, we autosplit only
+      // if we go from map A to map B
+      if (specific_map_transitions.find(split_code) != end(specific_map_transitions))
+        should_autosplit = (current_map == specific_map_transitions[split_code]);
+
+      if (should_autosplit) {
+        already_triggered_splits.insert(split_code);
+        return true;
+      }
+    }
+
+    break;
+  }
+
+  if (current_map == maps["s2_riptos_arena"sv].first) {
+    // "Enter Ripto's Arena" specific handling
+    if (settings["s2_enter_ripto"s] && old_map != current_map)
+      return true;
+
+    // "Ripto (on last blow)" specific handling
+    if (settings["s2_kill_ripto"s] && old.health_ripto3() == std::byte{1} && current.health_ripto3() == std::byte{0})
+      return true;
+  }
+
+  return false;
 }
 
 int main(int argc, char** argv) {
@@ -226,6 +287,7 @@ int main(int argc, char** argv) {
 
     if (start())  std::cout << "start\n";
     if (reset())  std::cout << "reset\n";
+    if (split())  std::cout << "split\n";
 
     std::this_thread::sleep_for(33ms);
   }

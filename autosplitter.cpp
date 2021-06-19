@@ -191,6 +191,10 @@ bool start() {
   return false;
 }
 
+bool reset() {
+  return settings["reset"s] && current.in_game() == std::byte{0};
+}
+
 int main(int argc, char** argv) {
   using namespace std::chrono_literals;
 
@@ -221,6 +225,7 @@ int main(int argc, char** argv) {
     std::cout << "map:            " << map_name                                   << '\n';
 
     if (start())  std::cout << "start\n";
+    if (reset())  std::cout << "reset\n";
 
     std::this_thread::sleep_for(33ms);
   }

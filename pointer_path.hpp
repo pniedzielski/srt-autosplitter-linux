@@ -39,9 +39,9 @@ public:
       auto remote = iovec{ remote_addr, len };
 
       auto read_len = process_vm_readv(pid, &local, 1, &remote, 1, 0);
-      if (read_len != len)
-        std::cerr << "Warning: could not read memory from process\n"
-                  << strerror(errno) << '\n';
+//      if (read_len != len)
+//        std::cerr << "Warning: could not read memory from process\n"
+//                  << strerror(errno) << '\n';
       ++it;
       remote_addr = buffer_ptr;
     }
@@ -53,9 +53,9 @@ public:
     auto remote = iovec{ remote_addr, len };
 
     auto read_len = process_vm_readv(pid, &local, 1, &remote, 1, 0);
-    if (read_len != len)
-      std::cerr << "Warning: could not read memory from process\n"
-                << strerror(errno) << '\n';
+//    if (read_len != len)
+//      std::cerr << "Warning: could not read memory from process\n"
+//                << strerror(errno) << '\n';
   }
 };
 

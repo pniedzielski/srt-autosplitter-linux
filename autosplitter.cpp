@@ -37,11 +37,11 @@ struct state {
   pointer_path<std::array<char16_t, 256>> map{ 0x03415F30, 0x138, 0xB0, 0xB0, 0x598, 0x210, 0xB8, 0x148, 0x190, 0x0 };
 
   void update() {
-    std::cerr << "is_not_loading\n";  is_not_loading.update();
-    std::cerr << "in_menu\n";         in_menu.update();
-    std::cerr << "in_game\n";         in_game.update();
-    std::cerr << "health_ripto3\n";   health_ripto3.update();
-    std::cerr << "map\n";             map.update();
+    is_not_loading.update();
+    in_menu.update();
+    in_game.update();
+    health_ripto3.update();
+    map.update();
   }
 };
 
@@ -308,11 +308,11 @@ int main(int argc, char** argv) {
     auto map_name = std::wstring_convert<
       std::codecvt_utf8_utf16<char16_t>, char16_t>{}.to_bytes(map_name_utf16.data());
 
-    std::cout << "is_not_loading: " << static_cast<int>(current.is_not_loading()) << '\n';
-    std::cout << "in_menu:        " << static_cast<int>(current.in_menu())        << '\n';
-    std::cout << "in_game:        " << static_cast<int>(current.in_game())        << '\n';
-    std::cout << "health_ripto3:  " << static_cast<int>(current.health_ripto3())  << '\n';
-    std::cout << "map:            " << map_name                                   << '\n';
+    // std::cout << "> is_not_loading: " << static_cast<int>(current.is_not_loading()) << '\n';
+    // std::cout << "> in_menu:        " << static_cast<int>(current.in_menu())        << '\n';
+    // std::cout << "> in_game:        " << static_cast<int>(current.in_game())        << '\n';
+    // std::cout << "> health_ripto3:  " << static_cast<int>(current.health_ripto3())  << '\n';
+    // std::cout << "> map:            " << map_name                                   << '\n';
 
     if (start())  std::cout << "start\n";
     if (reset())  std::cout << "reset\n";

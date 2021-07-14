@@ -290,6 +290,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Spyro Reignited Trilogy Autosplitter for Linux\n";
 
+  set_pid();
+
   // Initialize settings for autosplits from the map list
   for (auto&& entry : maps) {
     auto split_code  = std::string{ entry.first };

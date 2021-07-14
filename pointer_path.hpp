@@ -1,13 +1,33 @@
 #ifndef SRT_POINTER_PATH_HPP
 #define SRT_POINTER_PATH_HPP
 
+#include <array>          // std::array<T,N>
 #include <cstddef>        // std::ptrdiff_t, std::byte
 #include <iostream>       // std::cerr
 #include <vector>         // std::vector<T>, begin, end
 
 #include <errno.h>        // errno
+#include <stdio.h>        // popen, pclose, fgets
+#include <stdlib.h>       // atoi
 #include <string.h>       // strerror
 #include <sys/uio.h>      // process_vm_readv, struct iovec
+
+namespace {
+  static pid_t pid;
+}
+
+void set_pid() {
+  constexpr auto length = 20;
+  auto line = std::array<char,length>{};
+
+  // This is ugly, but it works.
+  FILE* cmd = popen("pgrep Spyro-Win64-Shi","r");
+  fgets(line.data(), length, cmd);
+  pid = pid_t{ atoi(line.data()) };
+  pclose(cmd);
+
+  std::cout << "> pid: " << pid << '\n' << std::flush;
+}
 
 template <typename T>  // T is a POD
 struct pointer_path {
@@ -27,8 +47,6 @@ public:
     auto remote_addr = reinterpret_cast<std::byte*>(0x140000000); // This is just temporary!
     auto buffer_ptr  = (std::byte*){ nullptr };
     auto len = sizeof remote_addr;
-
-    auto pid    = pid_t{ 211277 };  // This is just temporary!
 
     // Chase pointers until we get to the memory address we want.
     auto it = begin(ptroffsets);

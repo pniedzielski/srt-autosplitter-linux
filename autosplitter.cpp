@@ -187,7 +187,7 @@ auto game_time = 0l;
 auto rta_start = std::chrono::steady_clock::now();
 
 bool start() {
-  if (current.in_game() == std::byte{1} && old.in_game() == std::byte{0}) {
+  if (current.in_game() == std::byte{ 1 } && old.in_game() == std::byte{ 0 }) {
     already_triggered_splits.clear();
     last_level_exit_timestamp = 0;
     rta_start = std::chrono::steady_clock::now();
@@ -197,7 +197,7 @@ bool start() {
 }
 
 bool reset() {
-  return settings["reset"s] && current.in_game() == std::byte{0};
+  return settings["reset"s] && current.in_game() == std::byte{ 0 };
 }
 
 bool split() {
@@ -251,7 +251,9 @@ bool split() {
       return true;
 
     // "Ripto (on last blow)" specific handling
-    if (settings["s2_kill_ripto"s] && old.health_ripto3() == std::byte{1} && current.health_ripto3() == std::byte{0})
+    if (settings["s2_kill_ripto"s]                 &&
+        old.health_ripto3()     == std::byte{ 1 }  &&
+        current.health_ripto3() == std::byte{ 0 })
       return true;
   }
 
@@ -260,11 +262,11 @@ bool split() {
 
 bool is_loading() {
   // Game must be loading something to pause the timer
-  if (current.is_not_loading() != std::byte{0})
+  if (current.is_not_loading() != std::byte{ 0 })
     return false;
 
   // Timer must never be paused on title screen
-  if (current.in_game() == std::byte{0})
+  if (current.in_game() == std::byte{ 0 })
     return false;
 
   // It would be nice if we could access the LiveSplit One timers,
@@ -279,7 +281,7 @@ bool is_loading() {
   // because the "in_menu" state is active during the fade to black
   // after game is selected (which would cause 0.9s to elapse on run
   // start whereas something is indeed loading).
-  if (current.in_menu() > std::byte{0} && rta >= 3s)
+  if (current.in_menu() > std::byte{ 0 } && rta >= 3s)
     return false;
 
   return true;

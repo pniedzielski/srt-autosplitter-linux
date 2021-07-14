@@ -287,12 +287,36 @@ bool is_loading() {
   return true;
 }
 
+
+void send_start() {
+  std::cout << "start\ninitgametime\n" << std::flush;
+}
+
+void send_reset() {
+  std::cout << "reset\n" << std::flush;
+}
+
+void send_split() {
+  std::cout << "split\n" << std::flush;
+}
+
+void send_pause() {
+  std::cout << "pausegametime\n" << std::flush;
+}
+
+void send_resume() {
+  std::cout << "resumegametime\n" << std::flush;
+}
+
+
 int main(int argc, char** argv) {
   using namespace std::chrono_literals;
 
-  std::cout << "Spyro Reignited Trilogy Autosplitter for Linux\n";
+  std::cout << "> Spyro Reignited Trilogy Autosplitter for Linux\n";
 
   set_pid();
+
+  auto was_loading = false;
 
   // Initialize settings for autosplits from the map list
   for (auto&& entry : maps) {
@@ -318,10 +342,15 @@ int main(int argc, char** argv) {
     // std::cout << "> health_ripto3:  " << static_cast<int>(current.health_ripto3())  << '\n';
     // std::cout << "> map:            " << map_name                                   << '\n';
 
-    if (start())  std::cout << "start\n";
-    if (reset())  std::cout << "reset\n";
-    if (split())  std::cout << "split\n";
-    if (is_loading())  std::cout << "is_loading()";
+    auto now_loading = is_loading();
+
+    if (start())                     { send_start();  was_loading = false; }
+    if (reset())                       send_reset();
+    if (split())                       send_split();
+    if (now_loading  && !was_loading)  send_pause();
+    if (!now_loading && was_loading)   send_resume();
+
+    was_loading = now_loading;
 
     std::this_thread::sleep_for(33ms);
   }

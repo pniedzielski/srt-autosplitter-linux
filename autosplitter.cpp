@@ -11,6 +11,7 @@
 #include <unordered_set>  // std::unordered_set<K>
 
 #include "pointer_path.hpp"
+#include "settings.hpp"
 
 using namespace std::literals;
 
@@ -161,26 +162,7 @@ auto specific_map_transitions = std::unordered_map<std::string_view, std::u16str
   { "s2_riptos_arena"sv,   u"/LS229_DragonShores/Maps/"sv      }
 };
 
-auto settings = std::unordered_map<std::string, bool>{
-  { "reset"s, false },               // Reset timer on title screen
-  { "ignore_fast_exits"s, true },    // Ignore fast exits (time spent in level < 15s)
-
-  { "s1"s, true },                   // Spyro the Dragon
-    { "s1_first"s,     true },       // Level exits (first time), s1
-    { "s1_everytime"s, true },       // Level exits (every time), s1
-//    { "s1_kill_gnasty"s, true },     // Gnasty Gnorc (on kill), s1
-
-  { "s2"s, true }, // Spyro 2: Ripto's Rage!
-    { "s2_first"s,       true  },  // Level exits (first time), s2
-    { "s2_everytime"s,   true  },  // Level exits (every time), s2
-    { "s2_enter_ripto"s, false },  // Enter Ripto's Arena, s2
-    { "s2_kill_ripto"s,  true  },  // Ripto (on last blow) [EXPERIMENTAL], s2
-
-  { "s3"s, true },  // Spyro: Year of the Dragon
-    { "s3_first"s,          true },  // Level exits (first time), s3
-    { "s3_everytime"s,      true },  // Level exits (every time), s3
-//    { "s3_kill_sorceress"s, true },  // Sorceress (on last blow), s3
-};
+auto settings = settings_map{};
 
 // TODO find way to implement this nicely
 auto game_time = 0l;
@@ -318,14 +300,33 @@ int main(int argc, char** argv) {
 
   auto was_loading = false;
 
-  // Initialize settings for autosplits from the map list
+  // Initialize settings.
+  settings.add("reset"s,             false, "Reset timer on title screen"s);
+  settings.add("ignore_fast_exits"s, true,  "Ignore fast exits (time spent in level < 15s)"s);
+
+  settings.add("s1"s, true, "Spyro the Dragon"s);
+    settings.add("s1_first"s,       true, "Level exits (first time)"s, "s1"s);
+    settings.add("s1_everytime"s,   true, "Level exits (every time)"s, "s1"s);
+//    settings.add("s1_kill_gnasty"s, true, "Gnasty Gnorc (on kill)"s,   "s1"s);
+
+  settings.add("s2"s, true, "Spyro 2: Ripto's Rage!"s);
+    settings.add("s2_first"s,       true,  "Level exits (first time)"s,            "s2"s);
+    settings.add("s2_everytime"s,   true,  "Level exits (every time)"s,            "s2"s);
+    settings.add("s2_enter_ripto"s, false, "Enter Ripto's Arena"s,                 "s2"s);
+    settings.add("s2_kill_ripto"s,  true,  "Ripto (on last blow) [EXPERIMENTAL]"s, "s2"s);
+
+  settings.add("s3"s, true, "Spyro: Year of the Dragon"s);
+    settings.add("s3_first"s,          true, "Level exits (first time)"s, "s3"s);
+    settings.add("s3_everytime"s,      true, "Level exits (every time)"s, "s3"s);
+//    settings.add("s3_kill_sorceress"s, true, "Sorceress (on last blow)"s, "s3"s);
+
   for (auto&& entry : maps) {
     auto split_code  = std::string{ entry.first };
-    auto map_name    = entry.second.second;
+    auto map_name    = std::string{ entry.second.second };
     auto game_prefix = split_code.substr(0, 2);
 
-    settings[split_code + "_first"s]     = true;   // mapName, gamePrefix + "_first");
-    settings[split_code + "_everytime"s] = false;  //, mapName, gamePrefix + "_everytime");
+    settings.add(split_code + "_first"s,     true,  map_name, game_prefix + "_first"s);
+    settings.add(split_code + "_everytime"s, false, map_name, game_prefix + "_everytime"s);
   }
 
   while (true) {

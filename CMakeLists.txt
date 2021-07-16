@@ -7,4 +7,5 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 project(srt-autosplitter-linux)
 add_executable(srt-autosplitter-linux
   autosplitter.cpp
-  pointer_path.hpp)
+  pointer_path.hpp
+  settings.hpp)

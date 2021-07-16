@@ -3,4 +3,51 @@
 #+EMAIL:  patrick@pniedzielski.net
 
 This repository contains a loadless autosplitter for speedrunning the
-Spyro Reignited Trilogy on Linux.
+Spyro Reignited Trilogy on Linux with LiveSplit One.
+
+For speedrunning SRT on Windows, [[https://github.com/Dinopony/spyrort-asl][Dinopony has created a LiveSplit ASL
+file]], which is run by LiveSplit’s built-in autosplitter component.
+There are two issues on Linux, though.  First, LiveSplit One, the
+cross-platform version of LiveSplit, does not support ASL files, and
+instead provides a WebSocket interface for controlling the timer.
+Second, even if you run LiveSplit through Wine, the autosplitter
+unfortunately does not work if you’re running SRT on Linux through
+Steam’s Proton.
+
+However, Proton/Wine maintains the memory layout of Windows programs
+it runs , meaning most of the work in the ASL file can be ported over
+to Linux.  The autosplitter in this directory is meant to be as
+faithful a port of the ASL autosplitter as possible to a C++ program,
+enough that its code and the code of the ASL file could be compared
+side-by-side to verify the correctness of our port.
+
+*This is still alpha software!  Don’t try to submit to the leaderboard
+with this!*
+
+* Build Instructions
+  To build this program, make sure you have a C++17 compatible
+  compiler and ~cmake~.
+
+  #+begin_src sh
+    mkdir build && cd build/
+    cmake -G "Unix Makefiles" ..
+    make
+  #+end_src
+
+  This will result in an executable called ~srt-autosplitter-linux~
+  being created.
+
+* Running Instructions
+  LiveSplit One supports a WebSocket interface for controlling its
+  timer.  This autosplitter outputs the timer commands to stdout, so
+  we use [[http://websocketd.com/][websocketd]] to send our timer commands to LiveSplit One.
+
+  After SRT is running and at the menu screen, run:
+
+  #+begin_src sh
+    websocketd --port 9000 ./srt-autosplitter-linux
+  #+end_src
+
+  Now, with LiveSplit One open, click “Connect to Server”, and enter
+  the address ~ws://localhost:9000/~.  The autosplitter should be in
+  control of your game timer now.

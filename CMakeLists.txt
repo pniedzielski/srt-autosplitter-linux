@@ -7,5 +7,6 @@ set(CMAKE_CXX_EXTENSIONS        OFF)
 project(srt-autosplitter-linux)
 add_executable(srt-autosplitter-linux
   autosplitter.cpp
+  fake_timer.hpp
   pointer_path.hpp
   settings.hpp)

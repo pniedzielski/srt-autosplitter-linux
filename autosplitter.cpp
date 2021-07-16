@@ -10,6 +10,7 @@
 #include <unordered_map>  // std::unordered_map<K,V>
 #include <unordered_set>  // std::unordered_set<K>
 
+#include "fake_timer.hpp"
 #include "pointer_path.hpp"
 #include "settings.hpp"
 
@@ -50,7 +51,7 @@ auto current = state{};
 auto old     = state{};
 
 auto already_triggered_splits  = std::unordered_set<std::string_view>{};
-auto last_level_exit_timestamp = 0;
+auto last_level_exit_timestamp = std::chrono::steady_clock::duration::zero();
 
 // Maps info tuples contains :
 //  1) internal map ID           (string)
@@ -164,15 +165,12 @@ auto specific_map_transitions = std::unordered_map<std::string_view, std::u16str
 
 auto settings = settings_map{};
 
-// TODO find way to implement this nicely
-auto game_time = 0l;
-auto rta_start = std::chrono::steady_clock::now();
+auto timer = fake_timer{};
 
 bool start() {
   if (current.in_game() == std::byte{ 1 } && old.in_game() == std::byte{ 0 }) {
     already_triggered_splits.clear();
-    last_level_exit_timestamp = 0;
-    rta_start = std::chrono::steady_clock::now();
+    timer.start();
     return true;
   }
   return false;
@@ -199,8 +197,8 @@ bool split() {
         current_map.size() == 0)
       continue;
 
-    auto is_fast_exit = (game_time - last_level_exit_timestamp < 15);
-    last_level_exit_timestamp = game_time;
+    auto is_fast_exit = (timer.loadless() - last_level_exit_timestamp < 15s);
+    last_level_exit_timestamp = timer.loadless();
 
     if (settings["ignore_fast_exits"] && is_fast_exit)
       break;
@@ -251,19 +249,13 @@ bool is_loading() {
   if (current.in_game() == std::byte{ 0 })
     return false;
 
-  // It would be nice if we could access the LiveSplit One timers,
-  // but the simple websocket API doesn't let us see this.  So we
-  // have to sorta implement it ourselves.
-  auto rta_current = std::chrono::steady_clock::now();
-  auto rta         = rta_current - rta_start;
-
   // Timer must not be paused when inside menu to prevent abusing
   // this by buffering a loading and pausing the game at the exact
   // same frame.  We also check that the run didn't just start,
   // because the "in_menu" state is active during the fade to black
   // after game is selected (which would cause 0.9s to elapse on run
   // start whereas something is indeed loading).
-  if (current.in_menu() > std::byte{ 0 } && rta >= 3s)
+  if (current.in_menu() > std::byte{ 0 } && timer.rta() >= 3s)
     return false;
 
   return true;
@@ -345,11 +337,11 @@ int main(int argc, char** argv) {
 
     auto now_loading = is_loading();
 
-    if (start())                     { send_start();  was_loading = false; }
-    if (reset())                       send_reset();
-    if (split())                       send_split();
-    if (now_loading  && !was_loading)  send_pause();
-    if (!now_loading && was_loading)   send_resume();
+    if (start())                      { send_start();  was_loading = false; }
+    if (reset())                        send_reset();
+    if (split())                        send_split();
+    if (now_loading  && !was_loading) { send_pause();   timer.pause();      }
+    if (!now_loading && was_loading)  { send_resume();  timer.resume();     }
 
     was_loading = now_loading;
 

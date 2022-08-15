@@ -10,6 +10,7 @@
 #include <unordered_map>  // std::unordered_map<K,V>
 #include <unordered_set>  // std::unordered_set<K>
 
+#include "env.hpp"
 #include "fake_timer.hpp"
 #include "pointer_path.hpp"
 #include "settings.hpp"
